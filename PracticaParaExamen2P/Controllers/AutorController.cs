@@ -1,87 +1,88 @@
-using AutoMapper;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Prueba.Model;
+using PracticaParaExamen2P.Controllers;
 using Prueba.Model.Dto;
+using Prueba.Model;
 using Prueba.Repository.IRepository;
 
-namespace PracticaParaExamen2P.Controllers
+namespace Prueba.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class PruebaController : ControllerBase
+    public class AutorController : ControllerBase
     {
-
-        private readonly ILogger<PruebaController> _logger;
+        private readonly ILogger<AutorController> _logger;
         public readonly IMapper _mapper;
-        public readonly ILibrosRepository _LibroRepos;
+        public readonly IAutorRepository _autorRepos;
 
-        public PruebaController(ILogger<PruebaController> logger,/* PharmacyContext dataBase*/ IMapper mapper, ILibrosRepository LibroRepos)
+        public AutorController(ILogger<AutorController> logger,/* PharmacyContext dataBase*/ IMapper mapper, IAutorRepository autorRepository)
         {
             _logger = logger;
             //_dataBase = dataBase;
             _mapper = mapper;
-            _LibroRepos = LibroRepos;
+            _autorRepos = autorRepository;
         }
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<IEnumerable<LibroDto>>> GetLibros()
+        public async Task<ActionResult<IEnumerable<AutorDto>>> GetAutores()
         {
             _logger.LogInformation("get All Libros");
 
-            var LibrosList = await _LibroRepos.GetAll();
+            var AutorList = await _autorRepos.GetAll();
 
-            return Ok(_mapper.Map<IEnumerable<LibroDto>>(LibrosList));
+            return Ok(_mapper.Map<IEnumerable<AutorDto>>(AutorList));
         }
-        [HttpGet("{id:int}", Name = "GetLibro")]
+        [HttpGet("{id:int}", Name = "GetAutor")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<LibroDto>> GetLibro(int id)
+        public async Task<ActionResult<AutorDto>> GetAutor(int id)
         {
             if (id == 0)
             {
-                _logger.LogError($"Fallo al traer el libro con el id: {id}");
+                _logger.LogError($"Fallo al traer el Autor con el id: {id}");
                 return BadRequest();
             }
-            var libro = await _LibroRepos.Get(s => s.IdAutor == id);
+            var libro = await _autorRepos.Get(s => s.IdAutor == id);
 
             if (libro == null)
             {
                 return NotFound();
             }
 
-            return Ok(_mapper.Map<LibroDto>(libro));
+            return Ok(_mapper.Map<AutorDto>(libro));
         }
 
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<LibroDto>> AddStudent([FromBody] LibroCreateDto libroCreateDto)
+        public async Task<ActionResult<AutorDto>> addAutor([FromBody] AutorCreateDto AutorCreateDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (await _LibroRepos.Get(s => s.Titulo.ToLower() == libroCreateDto.Titulo.ToLower()) != null)
+            if (await _autorRepos.Get(s => s.autor.ToLower() == AutorCreateDto.autor.ToLower()) != null)
             {
-                ModelState.AddModelError("El libro existe ", "�El libro con ese titulo ya existe!");
+                ModelState.AddModelError("El autor existe ", "¡El autor con ese titulo ya existe!");
                 return BadRequest(ModelState);
             }
 
-            if (libroCreateDto == null)
+            if (AutorCreateDto == null)
             {
-                return BadRequest(libroCreateDto);
+                return BadRequest(AutorCreateDto);
             }
 
-            Libro modelo = _mapper.Map<Libro>(libroCreateDto);
+            Autor modelo = _mapper.Map<Autor>(AutorCreateDto);
 
 
 
-            await _LibroRepos.Add(modelo);
+            await _autorRepos.Add(modelo);
 
-            return CreatedAtRoute("GetProduct", new { id = modelo.IdAutor }, modelo);
+            return CreatedAtRoute("GetAutor", new { id = modelo.IdAutor }, modelo);
 
         }
 
@@ -92,20 +93,20 @@ namespace PracticaParaExamen2P.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<IActionResult> Deleteproduct(int id)
+        public async Task<IActionResult> DeleteAutor(int id)
         {
             if (id == 0)
             {
                 return BadRequest();
             }
-            var student = await _LibroRepos.Get(s => s.IdAutor == id);
+            var autor = await _autorRepos.Get(s => s.IdAutor == id);
 
-            if (student == null)
+            if (autor == null)
             {
                 return NotFound();
             }
 
-            await _LibroRepos.Remove(student);
+            await _autorRepos.Remove(autor);
 
             return NoContent();
         }
@@ -113,18 +114,18 @@ namespace PracticaParaExamen2P.Controllers
         [HttpPut("{id:int}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> UpdateProduct(int id, [FromBody] LibroUpdateDto UpdateDto)
+        public async Task<IActionResult> UpdateAutor(int id, [FromBody] AutorUpdateDto UpdateDto)
         {
             if (UpdateDto == null || id != UpdateDto.IdAutor)
             {
                 return BadRequest();
             }
 
-            Libro modelo = _mapper.Map<Libro>(UpdateDto);
+            Autor modelo = _mapper.Map<Autor>(UpdateDto);
 
 
 
-            await _LibroRepos.Update(modelo);
+            await _autorRepos.Update(modelo);
 
             return NoContent();
         }
